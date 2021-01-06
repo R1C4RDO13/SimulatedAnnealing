@@ -1,18 +1,20 @@
 #pragma once
 
 #include <string>
-
+#include "Item.h"
+#include <vector>
 class Solution
 {
 public:
-	Solution();
-	Solution(double _x, double _y);
-	std::string to_string() const;
+	Solution(std::vector<Item> items);
+	std::string toString() const;
 	double value() const;
-	Solution random_walk(double max_step) const;
+	Solution randomWalk() const;
 
 private:
-	double x, y;
+	double getTotalWeight() const;
+	std::vector<Item> mItems;
+	static const unsigned kMaxWeight = 100;//TODO: set it by user input 
 
 };
 

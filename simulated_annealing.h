@@ -8,8 +8,9 @@ public:
     const double k_step = 1; //how far we want to look around the neighborhood --- to use in random walk
     const unsigned k_neighbors = 10;//10
     const double k_decrease_amount = 0.85;  //decrease amount in temperature 
-
+    bool random_bool();
 
     simulated_annealing();
+
 };
 

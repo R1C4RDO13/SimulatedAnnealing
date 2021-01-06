@@ -6,64 +6,85 @@
 #include <iostream>
 #include "Solution.h"
 
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <cmath>
+#include <vector>
+
+bool simulated_annealing::random_bool()
+{
+    if (rand() % 2)
+    {
+        return true;
+    }
+    return false;
+}
+
 simulated_annealing::simulated_annealing()
 {
-
+	unsigned yes = 0, no = 0;
     double probTemp = 0;
     srand(time(NULL));
 
-    Solution current_solution; //inital random solution
+	//generate random first solution
+    std::vector<Item> items
+	{//value , weight , ispresent in initial solution 
+		{10, 9, this->random_bool()},
+		{12, 29, this->random_bool()},
+		{13, 2,  this->random_bool()},
+		{20, 23, this->random_bool()},
+		{5,  12, this->random_bool()},
+		{22, 32, this->random_bool()},
+		{4,  14, this->random_bool()}
+	};
+	Solution currentSolution(items);//random
 
      double current_temperature = k_initial_temperature;
 
-	
-	for (unsigned i = 0 ; i< k_times_to_decrease_temperature ; i ++ )
-	{
-		unsigned yes = 0, no = 0;
+    std::ofstream csv("results.csv", std::ofstream::out);
+    double currentTemperature = k_initial_temperature;
+    for (unsigned i = 0; i < k_times_to_decrease_temperature; i++)
+    {
+        std::cout << std::endl << "-------------------------Temperature = " << currentTemperature << std::endl;
+        std::cout << "Solution = " << currentSolution.toString() << std::endl;
+        for (unsigned j = 0; j < k_neighbors; j++)
+        {
+            Solution candidate = currentSolution.randomWalk();
+            std::cout << "Candidate = " << candidate.toString() << std::endl;
+            if (candidate.value() > currentSolution.value())// notice inverted sign
+            {
+                std::cout << "Found a better solution" << std::endl;
+                currentSolution = candidate;
+            }
+            else if(candidate.value()>0)
+            {
+                double frac =  - candidate.value() + currentSolution.value();//notice inverted sign
+                double probability = 1 / exp(frac/currentTemperature);
 
-		std::cout << "------------- ---------- Temperature = " << current_temperature << std::endl;
-		std::cout << "Current Solution " << current_solution.to_string() << std::endl;
+                std::cout << "Probability = " << probability << std::endl;
+                probTemp = probability;
 
-		//for each temperature we need to walk around the neighborhood 
-		for(unsigned j = 0 ; j < k_neighbors ; j++)
-		{
-			Solution candidate = current_solution.random_walk(k_step);
-			std::cout << "Candidate Solution " << candidate.to_string() << std::endl;
-			if (candidate.value() < current_solution.value()) //this is to minimize, the lower the values better is
-			{
-				std::cout << "Better solution found" << std::endl;
-				current_solution = candidate;
-			}
-			else //check if takes worst solution
-			{
-				//
-				double frac = candidate.value() - current_solution.value();
-				double probability = 1 / exp(frac / current_temperature); //probability of taking worst solution
+                double r = (double)(rand() % 1000) / 1000;
 
-				std::cout << "Probability " << probability << std::endl;
-				//			this cast is actually important 
-				auto r =  (double)(rand() % 1000) / 1000; // 0 to 0.9999
-				if (r < probability)
-				{
-					std::cout << "Taking worst solution " << std::endl;
-					current_solution = candidate;
-					yes++;
-				}
-				else
-				{
-					std::cout << "Not taking worst solution " << std::endl;
-					no++;
-				}
-				
-				
-				
-			}
-		}
-
-		std::cout << " Worse solution? Yes " << yes << " No " << no << std::endl;
-
-		current_temperature = current_temperature * k_decrease_amount;
-	}
-	std::cout << "Finally, solution = " << current_solution.to_string() << std::endl;
+                if (r < probability)
+                {
+                    std::cout << "Taking the worse solution" << std::endl;
+                    currentSolution = candidate;
+                    yes++;
+                }
+                else
+                {
+                    std::cout << "NOT taking the worse solution" << std::endl;
+                    no++;
+                }
+            }
+        }
+        std::cout << " Worse solution? Yes " << yes << " No " << no << std::endl;
+        currentTemperature = currentTemperature * k_decrease_amount;
+        csv << currentSolution.value() << "\t" << yes << "\t" << no << "\t" << probTemp << '\n';
+    }
+    std::cout << "Finally, solution = " << currentSolution.toString() << std::endl;
+    csv.close();
 
 }

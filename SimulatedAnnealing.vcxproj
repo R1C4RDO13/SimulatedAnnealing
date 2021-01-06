@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="SimulatedAnnealing.cpp" />
     <ClCompile Include="simulated_annealing.cpp" />
     <ClCompile Include="Solution.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Item.h" />
     <ClInclude Include="simulated_annealing.h" />
     <ClInclude Include="Solution.h" />
   </ItemGroup>

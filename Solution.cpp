@@ -3,43 +3,72 @@
 #include <iostream>
 #include <sstream>
 
-Solution::Solution()
-{
-	//intializes the x, y values with random values
-	x = rand() % 10 - 5;
-	y = rand() % 10 - 5;
-}
-
-Solution::Solution(double _x, double _y) : x(_x) , y(_y)
+Solution::Solution(std::vector<Item> items) : mItems{ items }
 {
 }
 
-std::string Solution::to_string() const
+
+std::string Solution::toString() const
 {
-	std::ostringstream stream; // return string stream
-	stream << "x = " << x << " y = " << y << " z = " << value() << std::endl;
-	return  stream.str();
+	std::ostringstream stream;
+	stream << "Items: ";
+	for (Item const& i : mItems)
+	{
+		stream << i.toString() << " ";
+	}
+	stream << std::endl << " Total weight & value = " << getTotalWeight() << ' ' << value() << std::endl;
+
+	return stream.str();
 }
 
+double Solution::getTotalWeight() const
+{
+    double weightSum{ 0 };
+    for (Item const& i : mItems)
+    {
+        if (i.isPresent())
+            weightSum += i.getWeight();
+    }
+    return weightSum;
+}
 double Solution::value() const
 {
-	//Himmelblau
-	//pow(a,b) = a^b 
-	return pow((x * x) + y - 11, 2) + pow(x + (y * y) - 7, 2);
+    double valueSum{ 0 };
+    for (Item const& i : mItems)
+    {
+        if (i.isPresent())
+            valueSum += i.getValue();
+    }
+    if (getTotalWeight() > kMaxWeight)
+    {
+        return -10; //invalid solution
+    }
+    return valueSum;
 }
+// 1. penalty
+// 2. discard
+// 3. repair
 
-Solution Solution::random_walk(double max_step) const //gives us a new solution based on the current one
-{ //max_step gives us the maximum difference in units from x and y 
-	std::cout << "random walk " << this->to_string() << std::endl;
-	double step = rand() % (2 * (int)max_step * 1000) / (double)1000;
-	step = step - max_step;
-	double newX = x + step;
+Solution Solution::randomWalk() const
+{
+    std::vector<Item> itemsCopy = this->mItems;
+    unsigned index = rand() % itemsCopy.size();
 
-	step = rand() % (2 * (int)max_step * 1000) / (double)1000;
-	step = step - max_step;
-	double newY = y + step;
+    itemsCopy[index].setPresent(1 - itemsCopy[index].isPresent());
 
-	Solution newSolution(newX, newY);
-	return newSolution;
-	
+    Solution newSolution(itemsCopy);
+    while (newSolution.value() < 0)
+    {
+        for (Item& i : itemsCopy)
+        {
+            if (i.isPresent())
+            {
+                i.setPresent(false);
+                break;
+            }
+        }
+        newSolution.mItems = itemsCopy;
+    }
+
+    return newSolution;
 }
